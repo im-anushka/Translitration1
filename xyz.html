@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Name Matching & Transliteration API Test</title>
+    <style>
+      /* General Styles */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: lavender;
+      }
+
+      h2 {
+        color: #005f99;
+        margin-top: 40px;
+      }
+
+      label {
+        font-weight: bold;
+      }
+
+      p {
+        font-size: 16px;
+        background-color: #fff;
+        padding: 10px;
+        border-left: 4px solid #007bff;
+        margin-top: 10px;
+        border-radius: 4px;
+      }
+
+      /* Inputs and Buttons */
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0 15px 0;
+        box-sizing: border-box;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      /* Section Box */
+      .section {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      /* Layout Containers */
+      .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 40px 60px;
+        gap: 40px;
+        box-sizing: border-box;
+        width: 100%;
+      }
+
+      .left-side,
+      .right-side {
+        flex: 1;
+        max-width: 50%;
+      }
+
+      .flex-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+      }
+
+      /* Responsive Layout */
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column;
+          padding: 20px;
+        }
+
+        .left-side,
+        .right-side {
+          max-width: 100%;
+        }
+      }
+    </style>
+
+    <script>
+      const BASE_URL = "http://127.0.0.1:5000";
+
+      async function matchNames() {
+        const name1 = document.getElementById("name1").value.trim();
+        const name2 = document.getElementById("name2").value.trim();
+        if (!name1 || !name2) {
+          alert("Both names are required for matching.");
+          return;
+        }
+        const response = await fetch(`${BASE_URL}/match-names`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name1, name2 }),
+        });
+        if (!response.ok) {
+          alert("Error matching names. Please try again.");
+          return;
+        }
+        const result = await response.json();
+        document.getElementById(
+          "result_en"
+        ).innerText = `Match: ${result.match}, Confidence: ${result.confidence}, Explanation: ${result.explanation}`;
+      }
+
+      async function matchNames2() {
+        const name1 = document.getElementById("name3").value.trim();
+        const name2 = document.getElementById("name4").value.trim();
+        if (!name1 || !name2) {
+          alert("Both names are required for matching.");
+          return;
+        }
+        const response = await fetch(`${BASE_URL}/match-names2`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name1, name2 }),
+        });
+        if (!response.ok) {
+          alert("Error matching names. Please try again.");
+          return;
+        }
+        const result = await response.json();
+        document.getElementById(
+          "result_kn"
+        ).innerText = `Match: ${result.match}, Confidence: ${result.confidence}, Explanation: ${result.explanation}`;
+      }
+
+      async function transliterate(text, direction) {
+        try {
+          let response = await fetch(`${BASE_URL}/transliterate/${direction}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          });
+          if (!response.ok) {
+            throw new Error("Failed to transliterate.");
+          }
+          let data = await response.json();
+          return data.transliteration || "Error!";
+        } catch (error) {
+          console.error("Error:", error);
+          return "API request failed!";
+        }
+      }
+
+      async function transliterateEnToKn() {
+        let text = document.getElementById("en_to_kn").value.trim();
+        if (!text) {
+          alert("Please enter text to transliterate.");
+          return;
+        }
+        let words = text.split(" ");
+        let transliteratedWords = await Promise.all(
+          words.map((word) => transliterate(word, "en-to-kn"))
+        );
+        document.getElementById("en_to_kn_result").innerText =
+          transliteratedWords.join(" ");
+      }
+
+      async function transliterateKnToEn() {
+        let text = document.getElementById("kn_to_en").value.trim();
+        if (!text) {
+          alert("Please enter text to transliterate.");
+          return;
+        }
+        let words = text.split(" ");
+        let transliteratedWords = await Promise.all(
+          words.map((word) => transliterate(word, "kn-to-en"))
+        );
+        document.getElementById("kn_to_en_result").innerText =
+          transliteratedWords.join(" ");
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container flex-wrapper">
+      <!-- Left Side: Name Matching -->
+      <div class="left-side">
+        <div class="section">
+          <h2>Name Matching (ENG Conversion)</h2>
+          <label>Enter Name 1:</label><br />
+          <input type="text" id="name1" placeholder="Enter first name" />
+          <label>Enter Name 2:</label><br />
+          <input type="text" id="name2" placeholder="Enter second name" />
+          <button onclick="matchNames()">Check Match</button>
+          <h3>Result:</h3>
+          <p id="result_en"></p>
+        </div>
+
+        <div class="section">
+          <h2>Name Matching (KAN Conversion)</h2>
+          <label>Enter Name 1:</label><br />
+          <input type="text" id="name3" placeholder="Enter first name" />
+          <label>Enter Name 2:</label><br />
+          <input type="text" id="name4" placeholder="Enter second name" />
+          <button onclick="matchNames2()">Check Match</button>
+          <h3>Result:</h3>
+          <p id="result_kn"></p>
+        </div>
+      </div>
+
+      <!-- Right Side: Transliteration -->
+      <div class="right-side">
+        <div class="section">
+          <h2>Test English to Kannada Transliteration</h2>
+          <label>Enter English Text:</label><br />
+          <input
+            type="text"
+            id="en_to_kn"
+            placeholder="Enter text in English"
+          />
+          <button onclick="transliterateEnToKn()">
+            Transliterate to Kannada
+          </button>
+          <h3>Result:</h3>
+          <p id="en_to_kn_result"></p>
+        </div>
+
+        <div class="section">
+          <h2>Test Kannada to English Transliteration</h2>
+          <label>Enter Kannada Text:</label><br />
+          <input
+            type="text"
+            id="kn_to_en"
+            placeholder="Enter text in Kannada"
+          />
+          <button onclick="transliterateKnToEn()">
+            Transliterate to English
+          </button>
+          <h3>Result:</h3>
+          <p id="kn_to_en_result"></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+<!-- 
+<body>
+    <h2>Name Matching (ENG Conversion)</h2>
+    <label>Enter Name 1:</label>
+    <input type="text" id="name1" placeholder="Enter first name"><br><br>
+    <label>Enter Name 2:</label>
+    <input type="text" id="name2" placeholder="Enter second name"><br><br>
+    <button onclick="matchNames()">Check Match</button>
+    <h3>Result:</h3>
+    <p id="result_en"></p>
+    
+    <h2>Name Matching (KAN Conversion)</h2>
+    <label>Enter Name 1:</label>
+    <input type="text" id="name3" placeholder="Enter first name"><br><br>
+    <label>Enter Name 2:</label>
+    <input type="text" id="name4" placeholder="Enter second name"><br><br>
+    <button onclick="matchNames2()">Check Match</button>
+    <h3>Result:</h3>
+    <p id="result_kn"></p>
+    
+    <h2>Test English to Kannada Transliteration</h2>
+    <label>Enter English Text:</label>
+    <input type="text" id="en_to_kn" placeholder="Enter text in English"><br><br>
+    <button onclick="transliterateEnToKn()">Transliterate to Kannada</button>
+    <h3>Result:</h3>
+    <p id="en_to_kn_result"></p>
+    
+    <h2>Test Kannada to English Transliteration</h2>
+    <label>Enter Kannada Text:</label>
+    <input type="text" id="kn_to_en" placeholder="Enter text in Kannada"><br><br>
+    <button onclick="transliterateKnToEn()">Transliterate to English</button>
+    <h3>Result:</h3>
+    <p id="kn_to_en_result"></p>
+</body>
+</html> -->
